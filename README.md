@@ -22,6 +22,13 @@ URL
 ```http://localhost:3000/awards```
 
 # Instruções para execução
+
+Clonar o projeto
+
+```bash
+git clone https://github.com/IgorFachini/API-pior-filme-teste.git
+```
+
 Todo os comandos executar na raiz do projeto
 
 ## JSON esperado de retorno
