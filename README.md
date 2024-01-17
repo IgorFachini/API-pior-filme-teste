@@ -37,18 +37,30 @@ Todo os comandos executar na raiz do projeto
 {
     "min": [
         {
+            "producer": "Matthew Vaughn",
+            "previousWin": 2002,
+            "followingWin": 2003,
+            "interval": 1
+        },
+        {
             "producer": "Joel Silver",
-            "interval": 1,
             "previousWin": 1990,
-            "followingWin": 1991
+            "followingWin": 1991,
+            "interval": 1
         }
     ],
     "max": [
         {
             "producer": "Matthew Vaughn",
-            "interval": 13,
-            "previousWin": 2002,
-            "followingWin": 2015
+            "previousWin": 1980,
+            "followingWin": 2002,
+            "interval": 22
+        },
+        {
+            "producer": "Matthew Vaughn",
+            "previousWin": 2015,
+            "followingWin": 2037,
+            "interval": 22
         }
     ]
 }
@@ -71,3 +83,6 @@ Rodar o commando na raiz do projeto
 ```bash
 npm test
 ```
+
+
+Ao adicionar as linhas abaixo ao arquivo de dados fornecido juntamente com o teste o sistema deve apresentar dois resultados min com intervalo igual a 1 e dois resultados max com intervalo igual a 22:
