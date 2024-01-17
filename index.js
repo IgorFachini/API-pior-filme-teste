@@ -4,57 +4,56 @@ const { initializeDatabase } = require('./database');
 
 const db = initializeDatabase();
 
-function calcIntervalWinners (data) {
-    return data.reduce((acc, cur) => {
-        if (acc.find(({ producer }) => producer === cur.producer)) {
-            return acc
-        }
+const AWARDS_MIN_QUANTITY = 2;
 
-        const followingWin = data.find(({ producer, year }) => producer === cur.producer && year !== cur.year)
+function getIntervalAwards (winningMovies) {
+    const moviesByProducer = winningMovies.reduce((acc, movie) => {
+        const key = movie.producer;
+        acc[key] = acc[key] || [];
+        acc[key].push(movie);
+        return acc;
+    }, {});
 
-        if (followingWin) {
-            return [
-                ...acc,
-                {
-                    producer: cur.producer,
-                    interval: followingWin.year - cur.year,
-                    previousWin: cur.year,
-                    followingWin: followingWin.year
+    const intervals = [];
+
+    Object.entries(moviesByProducer).forEach(([producer, movies]) => {
+        movies.sort((a, b) => a.year - b.year);
+        if (movies.length >= AWARDS_MIN_QUANTITY) {
+            movies.forEach((movie, index) => {
+                const nextMovie = getNextMovie(movies, index);
+                if (nextMovie) {
+                    const interval = {
+                        producer,
+                        previousWin: movie.year,
+                        followingWin: nextMovie.year,
+                        interval: nextMovie.year - movie.year,
+                    };
+                    intervals.push(interval);
                 }
-            ]
+            });
         }
+    });
 
-        return [
-            ...acc,
-            {
-                producer: cur.producer,
-                interval: 0,
-                previousWin: cur.year,
-                followingWin: 0
-            }
-        ]
-    }, []).filter(({ interval }) => interval > 0)
+    const min = intervals.filter(
+        producerInterval =>
+            producerInterval.interval === Math.min(...intervals.map(interval => interval.interval))
+    );
+
+    const max = intervals.filter(
+        producerInterval =>
+            producerInterval.interval === Math.max(...intervals.map(interval => interval.interval))
+    );
+
+    return { min, max };
 }
 
-function getMinAndMaxIntervalProducer (data) {
-    const min = data.reduce((acc, cur) => {
-        if (acc.interval > cur.interval) {
-            return cur
-        }
-
-        return acc
-    }, { interval: Infinity })
-
-    const max = data.reduce((acc, cur) => {
-        if (acc.interval < cur.interval) {
-            return cur
-        }
-
-        return acc
-    }, { interval: -1 })
-
-    return { min: [min], max: [max] }
+function getNextMovie (winningMovies, index) {
+    if (index < 0 || index + 1 === winningMovies.length) {
+        return null;
+    }
+    return winningMovies[index + 1];
 }
+
 
 app.get('/awards', (req, res) => {
     db.all(`
@@ -67,10 +66,9 @@ app.get('/awards', (req, res) => {
             console.error(err.message);
             return;
         }
-        const intervalWinners = calcIntervalWinners(rows);
-        const minAndMaxIntervalProducer = getMinAndMaxIntervalProducer(intervalWinners);
+        const intervalWinners = getIntervalAwards(rows);
 
-        res.json(minAndMaxIntervalProducer);
+        res.json(intervalWinners);
     });
 });
 
